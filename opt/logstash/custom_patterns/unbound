@@ -1,0 +1,54 @@
+LOGLEVEL ([Aa]lert|ALERT|[Tt]race|TRACE|[Dd]ebug|DEBUG|[Nn]otice|NOTICE|[Ii]nfo|INFO|[Ww]arn?(?:ing)?|WARN?(?:ING)?|[Ee]rr?(?:or)?|ERR?(?:OR)?|[Cc]rit?(?:ical)?|CRIT?(?:ICAL)?|[Ff]atal|FATAL|[Ss]evere|SEVERE|EMERG(?:ENCY)?|[Ee]merg(?:ency)?)
+TRUEGREEDYDATA (.|\r|\n)*
+GREEDYDATA .*
+IPV4 (?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])
+IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?
+IPORHOST (?:%{IP}|%{HOSTNAME})
+UNBOUND_SYSLOG %{SYSLOGHOST} %{USERNAME:daemon}: \[%{INT:pid}:%{INT}\] %{LOGLEVEL:log_level}:
+DNS_RESPONSE ;; ->>HEADER<<- opcode: %{WORD:opcode}, rcode: %{WORD:rcode}, id: %{INT:query_id}\n;; flags: %{GREEDYDATA:flags} ; QUERY: %{INT:num_query}, ANSWER: %{INT:num_answer}, AUTHORITY: %{INT:num_authority}, ADDITIONAL: %{INT:num_additional} \n;; QUESTION SECTION:%{TRUEGREEDYDATA: question_section}\n;; ANSWER SECTION:%{TRUEGREEDYDATA: answer_section}\n;; AUTHORITY SECTION:%{TRUEGREEDYDATA: authority_section}\n;; ADDITIONAL SECTION:%{TRUEGREEDYDATA: additional_section}\n;; MSG SIZE  rcvd: %{INT: dns_response_sz}
+DNS_ANSWER_LINE %{HOSTNAME:a_query}.\s+%{INT:ttl}\s+%{WORD:a_type}\s+%{WORD:a_record}\s+(?:%{IP:a_response}|%{HOSTNAME:a_response}(?:.))
+IP (?:%{IPV6}|%{IPV4})
+INT (?:[+-]?(?:[0-9]+))
+USERNAME [a-zA-Z0-9._-]+
+HOSTNAME \b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(\.?|\b)
+WORD \b\w+\b
+SYSLOGHOST %{IPORHOST}
+UNBOUND_SYSLOG_RAW_RESPONSE %{UNBOUND_SYSLOG}.*%{DNS_RESPONSE:raw_dns_response}
+DNS_ANSWER_9 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_10 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_7 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_8 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_6 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_5 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_3 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_4 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_2 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_1 %{DNS_ANSWER_LINE}
+IPORHOST (?:%{IP}|%{HOSTNAME})
+IPV4 (?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])
+IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?
+LOGLEVEL ([Aa]lert|ALERT|[Tt]race|TRACE|[Dd]ebug|DEBUG|[Nn]otice|NOTICE|[Ii]nfo|INFO|[Ww]arn?(?:ing)?|WARN?(?:ING)?|[Ee]rr?(?:or)?|ERR?(?:OR)?|[Cc]rit?(?:ical)?|CRIT?(?:ICAL)?|[Ff]atal|FATAL|[Ss]evere|SEVERE|EMERG(?:ENCY)?|[Ee]merg(?:ency)?)
+USERNAME [a-zA-Z0-9._-]+
+SYSLOGHOST %{IPORHOST}
+IP (?:%{IPV6}|%{IPV4})
+HOSTNAME \b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(\.?|\b)
+TRUEGREEDYDATA (.|\r|\n)*
+INT (?:[+-]?(?:[0-9]+))
+GREEDYDATA .*
+WORD \b\w+\b
+UNBOUND_SYSLOG_RAW_RESPONSE %{UNBOUND_SYSLOG}.*%{DNS_RESPONSE:raw_dns_response}
+DNS_ANSWER_7 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_2 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_QUESTION_LINE %{HOSTNAME:q_query}(?:.)\t%{WORD:q_type}\t%{WORD:q_record}
+DNS_ANSWER_4 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+UNBOUND_SYSLOG %{SYSLOGHOST} %{USERNAME:daemon}: \[%{INT:pid}:%{INT}\] %{LOGLEVEL:log_level}:
+DNS_ANSWER_9 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_6 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+UNBOUND_SYSLOG_CLIENT_REQUEST %{UNBOUND_SYSLOG}\s+%{HOSTNAME:dns_src}\s+%{HOSTNAME:dns_query}(?:.)\s+%{WORD:dns_query_record}\s+%{WORD:dns_query_type}
+DNS_ANSWER_LINE %{HOSTNAME:a_query}.\s+%{INT:ttl}\s+%{WORD:a_type}\s+%{WORD:a_record}\s+(?:%{IP:a_response}|%{HOSTNAME:a_response}(?:.))
+DNS_ANSWER_3 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_10 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_8 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
+DNS_ANSWER_1 %{DNS_ANSWER_LINE}
+DNS_RESPONSE ;; ->>HEADER<<- opcode: %{WORD:opcode}, rcode: %{WORD:rcode}, id: %{INT:query_id}\n;; flags: %{GREEDYDATA:flags} ; QUERY: %{INT:num_query}, ANSWER: %{INT:num_answer}, AUTHORITY: %{INT:num_authority}, ADDITIONAL: %{INT:num_additional} \n;; QUESTION SECTION:%{TRUEGREEDYDATA: question_section}\n;; ANSWER SECTION:%{TRUEGREEDYDATA: answer_section}\n;; AUTHORITY SECTION:%{TRUEGREEDYDATA: authority_section}\n;; ADDITIONAL SECTION:%{TRUEGREEDYDATA: additional_section}\n;; MSG SIZE  rcvd: %{INT: dns_response_sz}
+DNS_ANSWER_5 %{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}\n%{DNS_ANSWER_LINE}
